@@ -1,0 +1,76 @@
+name: DevSecOps CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js (for a Node.js project)
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: 🔒 SCA Scan with OWASP Dependency-Check
+        uses: dependency-check/action@v3
+        with:
+          project: 'dummy-project'
+          # This action will automatically generate a report and fail the build if vulnerabilities are found.
+          
+      - name: 🕵️‍♀️ SAST Scan with Semgrep
+        uses: semgrep/semgrep-action@v1
+        id: semgrep
+        with:
+          publishToken: ${{ secrets.SEMGREP_APP_TOKEN }}
+          # The publishToken is optional for basic scans but required for Semgrep App features.
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+          # The action will automatically analyze your code and report findings.
+
+      - name: Build and Test Application
+        run: |
+          npm run build
+          npm test
+
+  dast_scan:
+    runs-on: ubuntu-latest
+    needs: build_and_scan
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: 🚀 Deploy the application (dummy step)
+        run: |
+          # In a real-world scenario, you'd deploy to a staging environment.
+          # For this example, we'll assume the app is running locally for the DAST scan.
+          # You might use Docker or a simple local server.
+          npm install
+          npm start &
+          sleep 15 # Wait for the server to start
+
+      - name: 💣 DAST Scan with OWASP ZAP
+        uses: zaproxy/action@v0.7.0
+        with:
+          # The target URL of your running application.
+          # This should be the URL of the deployed app in a real scenario.
+          target: 'http://localhost:3000' 
+          # You can specify various ZAP options here.
+          # For a basic scan, the target is enough.
+          
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-report.html
