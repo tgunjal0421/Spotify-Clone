@@ -56,11 +56,12 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: 🚀 Deploy the application (dummy step)
+      - name: 🚀 Start the application in a Docker container
+      # Build and run the app as a background service
         run: |
-          npm install
-          npm start &
-          sleep 15 # Wait for the server to start
+          docker build -t my-app-image .
+          docker run -d --name my-app-container -p 3000:3000 my-app-image
+          sleep 10 # Wait for the application to be ready
 
       - name: 💣 DAST Scan with OWASP ZAP
         uses: zaproxy/action-full-scan@v0.12.0
