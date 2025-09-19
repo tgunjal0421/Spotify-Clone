@@ -22,6 +22,9 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+      
+      - name: Fix Vulnerabilities with npm audit fix
+        run: npm audit fix --force
 
       - name: 🔒 SCA Scan with OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
