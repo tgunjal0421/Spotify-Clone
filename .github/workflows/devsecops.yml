@@ -24,9 +24,11 @@ jobs:
         run: npm install
 
       - name: 🔒 SCA Scan with OWASP Dependency-Check
-        uses: dependency-check/action@v3
+        uses: dependency-check/Dependency-Check_Action@main
         with:
           project: 'dummy-project'
+          path: '.'
+          format: 'HTML'
           # This action will automatically generate a report and fail the build if vulnerabilities are found.
           
       - name: 🕵️‍♀️ SAST Scan with Semgrep
