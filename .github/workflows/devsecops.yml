@@ -56,22 +56,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: 🚀 Start the application in a Docker container
-      # Build and run the app as a background service
+      - name: 🌐 Create a Docker network
+        run: docker network create zap-network
+
+      - name: 🚀 Start the application in a Docker container on the network
         run: |
           docker build -t my-app-image .
-          docker run -d --name my-app-container -p 3000:3000 my-app-image
+          docker run -d --name my-app-container --network zap-network -p 3000:3000 my-app-image
           sleep 10 # Wait for the application to be ready
 
       - name: 💣 DAST Scan with OWASP ZAP
         uses: zaproxy/action-full-scan@v0.12.0
         with:
-          # The target URL of your running application.
-          # This should be the URL of the deployed app in a real scenario.
-          target: 'http://localhost:3000' 
-          # You can specify various ZAP options here.
-          # For a basic scan, the target is enough.
-          
+          # The target is now the container's name on the shared network
+          target: 'http://my-app-container:3000'
+          # Pass the network name to the ZAP action
+          docker_network_name: zap-network
+
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
